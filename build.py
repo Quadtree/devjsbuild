@@ -19,6 +19,24 @@ def scanForInDirectory():
 
 	output = ""
 
+def findCssImports(file):
+	ret = []
+
+	f = open(file, "r")
+			
+	for line in f:
+		m = re.search('@import\s*url\\(([^)]+)\\);', line)
+		
+		if (m):
+			localRoot = os.path.dirname(os.path.realpath(file))
+			
+			ret.append(localRoot + "/" + m.group(1))
+			
+			ret += findCssImports(localRoot + "/" + m.group(1))
+			
+	f.close()
+	
+	return ret
 
 def performMinification(command, fileListRaw, ext, indiv=False):
 
@@ -49,17 +67,7 @@ def performMinification(command, fileListRaw, ext, indiv=False):
 			file = root + "/" + file
 		
 		if (ext == "css"):
-			f = open(file, "r")
-			
-			for line in f:
-				m = re.search('@import\s*url\\(([^)]+)\\);', line)
-				
-				if (m):
-					localRoot = os.path.dirname(os.path.realpath(file))
-					
-					fileList.append(localRoot + "/" + m.group(1))
-					
-			f.close()
+			fileList += findCssImports(file)
 			
 		fileList.append(file)
 	
