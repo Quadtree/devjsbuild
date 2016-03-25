@@ -86,13 +86,16 @@ def performMinification(command, fileListRaw, ext, indiv=False):
 	if (ext == "css"):
 		output = re.sub("@import[^;]+;", "", output)
 
-	outFile = root + "/dist/built" + hashlib.sha1(output.encode("utf-8")).hexdigest() + ".min." + ext
+	outFileEnd = "dist/built" + hashlib.sha1(output.encode("utf-8")).hexdigest() + ".min." + ext
+	outFile = root + "/" + outFileEnd
 		
 	f = open(outFile, "w")
 	f.write(output)
 	f.close()
 	
 	print("Successfully built " + outFile + " contains " + str(len(output)) + " characters")
+	
+	return outFileEnd
 
 root = os.path.dirname(os.path.realpath(sys.argv[1]))
 
@@ -138,8 +141,58 @@ f.close()
 print(str(scriptFiles))
 print(str(cssFiles))
 
-#performMinification('closure-compiler', scriptFiles, 'js')
-performMinification('yui-compressor', cssFiles, 'css', True)
+jsOutFile = performMinification('closure-compiler', scriptFiles, 'js')
+cssOutFile = performMinification('yui-compressor', cssFiles, 'css', True)
+
+#jsOutFile = "dist/test.js"
+#cssOutFile = "dist/test.css"
+
+print(jsOutFile)
+print(cssOutFile)
+
+outHtml = open(root + "/index.html", "w")
+outHtml.write("<!DOCTYPE HTML>")
+
+class RebuildingHTMLParser(html.parser.HTMLParser):
+	def handle_starttag(self, tag, attrs):
+		if (tag == "script"):
+			return
+		
+		if (tag == "link"):
+			for (k,v) in attrs:
+				if (k == "rel" and v == "stylesheet"):
+					return
+		
+		outHtml.write("<" + tag)
+		
+		for (k,v) in attrs:
+			if (v):
+				outHtml.write(' ' + k + '="' + v + '"')
+			else:
+				outHtml.write(' ' + k)
+		
+		if (tag == "link" or tag == "br"):
+			outHtml.write("/>")
+		else:
+			outHtml.write(">")
+			
+		if (tag == "head"):
+			outHtml.write('<script src="' + jsOutFile + '"></script>\n')
+			outHtml.write('<link rel="stylesheet" href="' + cssOutFile + '"/>\n')
+	def handle_endtag(self, tag):
+		if (tag != "script" and tag != "link" and tag != "br"):
+			outHtml.write("</" + tag + ">")
+	def handle_data(self, data):
+		outHtml.write(data)
+
+parser = RebuildingHTMLParser()
+		
+f = open(sys.argv[1], "r")
+
+for line in f:
+	parser.feed(line)
+	
+f.close()
 
 
 
