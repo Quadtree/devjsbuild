@@ -25,13 +25,10 @@ def performMinification(command, fileListRaw, ext, indiv=False):
 	fileList = []
 
 	for file in fileListRaw:
-		
-	
 		if (file[0:5] == "https"):
 			pr = urllib.parse.urlparse(file)
 		
 			cacheFile = "/tmp/" + hashlib.sha1(file.encode("utf-8")).hexdigest() + ".cache." + ext
-			fileList.append(cacheFile)
 			
 			if (not os.path.isfile(cacheFile)):
 				print ("Downloading " + file)
@@ -46,9 +43,25 @@ def performMinification(command, fileListRaw, ext, indiv=False):
 				f.close()
 				
 				print("Downloaded and saved " + str(len(respText)) + " bytes to " + cacheFile)
-			
+				
+			file = cacheFile
 		else:
-			fileList.append(root + "/" + file)
+			file = root + "/" + file
+		
+		if (ext == "css"):
+			f = open(file, "r")
+			
+			for line in f:
+				m = re.search('@import\s*url\\(([^)]+)\\);', line)
+				
+				if (m):
+					localRoot = os.path.dirname(os.path.realpath(file))
+					
+					fileList.append(localRoot + "/" + m.group(1))
+					
+			f.close()
+			
+		fileList.append(file)
 	
 	output = ""
 	
@@ -117,7 +130,7 @@ f.close()
 print(str(scriptFiles))
 print(str(cssFiles))
 
-performMinification('closure-compiler', scriptFiles, 'js')
+#performMinification('closure-compiler', scriptFiles, 'js')
 performMinification('yui-compressor', cssFiles, 'css', True)
 
 
