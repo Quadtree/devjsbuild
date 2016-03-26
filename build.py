@@ -45,32 +45,36 @@ def performMinification(command, fileListRaw, ext, indiv=False):
 
 	for file in fileListRaw:
 		if (file[0:5] == "https"):
-			pr = urllib.parse.urlparse(file)
-		
-			cacheFile = "/tmp/" + hashlib.sha1(file.encode("utf-8")).hexdigest() + ".cache." + ext
+			if (ext != "css"):
+				pr = urllib.parse.urlparse(file)
 			
-			if (not os.path.isfile(cacheFile)):
-				print ("Downloading " + file)
+				cacheFile = "/tmp/" + hashlib.sha1(file.encode("utf-8")).hexdigest() + ".cache." + ext
 				
-				con = http.client.HTTPSConnection(pr.netloc)
-				con.request("GET", pr.path)
-				
-				respText = con.getresponse().read()
-				
-				f = open(cacheFile, "wb")
-				f.write(respText)
-				f.close()
-				
-				print("Downloaded and saved " + str(len(respText)) + " bytes to " + cacheFile)
-				
-			file = cacheFile
+				if (not os.path.isfile(cacheFile)):
+					print ("Downloading " + file)
+					
+					con = http.client.HTTPSConnection(pr.netloc)
+					con.request("GET", pr.path)
+					
+					respText = con.getresponse().read()
+					
+					f = open(cacheFile, "wb")
+					f.write(respText)
+					f.close()
+					
+					print("Downloaded and saved " + str(len(respText)) + " bytes to " + cacheFile)
+					
+				file = cacheFile
+			else:
+				file = None
 		else:
 			file = root + "/" + file
 		
-		if (ext == "css"):
-			fileList += findCssImports(file)
-			
-		fileList.append(file)
+		if (file):
+			if (ext == "css"):
+				fileList += findCssImports(file)
+		
+			fileList.append(file)
 	
 	output = ""
 	
@@ -160,9 +164,17 @@ class RebuildingHTMLParser(html.parser.HTMLParser):
 			return
 		
 		if (tag == "link"):
+			isStylesheet = False
+			isExternal = False
+		
 			for (k,v) in attrs:
 				if (k == "rel" and v == "stylesheet"):
-					return
+					isStylesheet = True
+				if (k == "href" and v[:5] == "https"):
+					isExternal = True
+					
+			if (isStylesheet and not isExternal):
+				return
 		
 		outHtml.write("<" + tag)
 		
