@@ -9,35 +9,6 @@ import http.client
 import hashlib
 import urllib.parse
 import gzip
-
-def scanForInDirectory():
-	fileList = []
-	for srcDir in srcDirs:
-		for dirRoot, dirs, files in os.walk(root + "/" + srcDir):
-			for file in files:
-				if (file.endswith(ext)):
-					fileList.append(dirRoot + "/" + file)
-
-	output = ""
-
-def findCssImports(file):
-	ret = []
-
-	f = open(file, "r")
-			
-	for line in f:
-		m = re.search('@import\s*url\\(([^)]+)\\);', line)
-		
-		if (m):
-			localRoot = os.path.dirname(os.path.realpath(file))
-			
-			ret.append(localRoot + "/" + m.group(1))
-			
-			ret += findCssImports(localRoot + "/" + m.group(1))
-			
-	f.close()
-	
-	return ret
 	
 def hashFile(file):
 	f = open(file, "rb")
@@ -85,9 +56,6 @@ def performMinification(command, fileListRaw, ext, indiv=False):
 			file = root + "/" + file
 		
 		if (file):
-			#if (ext == "css"):
-			#	fileList += findCssImports(file)
-		
 			fileList.append(file)
 			
 			overallHash.update(hashFile(file).encode("utf-8"))
