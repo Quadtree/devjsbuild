@@ -8,6 +8,7 @@ import html.parser
 import http.client
 import hashlib
 import urllib.parse
+import gzip
 
 def scanForInDirectory():
 	fileList = []
@@ -86,11 +87,11 @@ def performMinification(command, fileListRaw, ext, indiv=False):
 	if (ext == "css"):
 		output = re.sub("@import[^;]+;", "", output)
 
-	outFileEnd = "dist/combined-" + hashlib.sha1(output.encode("utf-8")).hexdigest() + ".min." + ext
+	outFileEnd = "dist/combined-" + hashlib.sha1(output.encode("utf-8")).hexdigest() + ".min." + ext + ".gz"
 	outFile = root + "/" + outFileEnd
 		
-	f = open(outFile, "w")
-	f.write(output)
+	f = gzip.open(outFile, "wb")
+	f.write(output.encode("utf-8"))
 	f.close()
 	
 	print("Successfully built " + outFile + " contains " + str(len(output)) + " characters")
