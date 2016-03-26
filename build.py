@@ -78,33 +78,30 @@ def performMinification(command, fileListRaw, ext, indiv=False):
 	
 	output = ""
 	
-	if (indiv):
-		for file in fileList:
-			args = [command]
-		
-			if (command == 'cleancss'):
-				args.append('-r')
-				localRoot = os.path.dirname(os.path.realpath(file))
-				localRoot = localRoot.replace(root + "", "")
-				args.append(localRoot)
-		
-			args.append(file)
-			print ("args: " + str(args))
-			output += subprocess.check_output(args).decode("utf-8") + "\n"
-	else:
-		args = [command] + fileList
-		print ("args: " + str(args))
-		output = subprocess.check_output(args).decode("utf-8")
-
-	#if (ext == "css"):
-	#	output = re.sub("@import[^;]+;", "", output)
-
-	outFileEnd = "dist/combined-" + hashlib.sha1(output.encode("utf-8")).hexdigest() + ".min." + ext + ".gz"
+	outFileStub = "dist/combined-" + hashlib.sha1(output.encode("utf-8")).hexdigest() + ".min." + ext
+	outFileEnd = outFileStub + ".gz"
 	outFile = root + "/" + outFileEnd
-		
-	f = gzip.open(outFile, "wb")
-	f.write(output.encode("utf-8"))
-	f.close()
+	
+	if (indiv):
+		raise Exception("EX")
+	else:
+		if (command != "cleancss"):
+			args = [command] + fileList
+			print ("args: " + str(args))
+			output = subprocess.check_output(args).decode("utf-8")
+			
+			f = gzip.open(outFile, "wb")
+			f.write(output.encode("utf-8"))
+			f.close()
+		else:
+			args = [command, '-o', root + "/" + outFileStub] + fileList
+			print ("args: " + str(args))
+			subprocess.check_call(args)
+			
+			args = ['gzip', root + "/" + outFileStub]
+			print ("args: " + str(args))
+			subprocess.check_call(args)
+	
 	
 	print("Successfully built " + outFile + " contains " + str(len(output)) + " characters")
 	
