@@ -86,7 +86,7 @@ def performMinification(command, fileListRaw, ext, indiv=False):
 	if (ext == "css"):
 		output = re.sub("@import[^;]+;", "", output)
 
-	outFileEnd = "dist/built" + hashlib.sha1(output.encode("utf-8")).hexdigest() + ".min." + ext
+	outFileEnd = "dist/combined-" + hashlib.sha1(output.encode("utf-8")).hexdigest() + ".min." + ext
 	outFile = root + "/" + outFileEnd
 		
 	f = open(outFile, "w")
@@ -177,7 +177,7 @@ class RebuildingHTMLParser(html.parser.HTMLParser):
 			outHtml.write(">")
 			
 		if (tag == "head"):
-			outHtml.write('<script src="' + jsOutFile + '"></script>\n')
+			outHtml.write('<script src="' + jsOutFile + '" async></script>\n')
 			outHtml.write('<link rel="stylesheet" href="' + cssOutFile + '"/>\n')
 	def handle_endtag(self, tag):
 		if (tag != "script" and tag != "link" and tag != "br"):
