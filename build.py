@@ -38,10 +38,24 @@ def findCssImports(file):
 	f.close()
 	
 	return ret
+	
+def hashFile(file):
+	f = open(file, "rb")
+	
+	h = hashlib.sha1()
+	
+	for line in f:
+		h.update(line + "\n".encode("utf-8"))
+		
+	print (file + " ==SHA1=> " + h.hexdigest())
+	
+	return h.hexdigest()
 
 def performMinification(command, fileListRaw, ext, indiv=False):
 
 	fileList = []
+	
+	overallHash = hashlib.sha1()
 
 	for file in fileListRaw:
 		if (file[0:5] == "https"):
@@ -75,10 +89,12 @@ def performMinification(command, fileListRaw, ext, indiv=False):
 			#	fileList += findCssImports(file)
 		
 			fileList.append(file)
+			
+			overallHash.update(hashFile(file).encode("utf-8"))
 	
 	output = ""
 	
-	outFileStub = "dist/combined-" + hashlib.sha1(output.encode("utf-8")).hexdigest() + ".min." + ext
+	outFileStub = "dist/combined-" + overallHash.hexdigest() + ".min." + ext
 	outFileEnd = outFileStub + ".gz"
 	outFile = root + "/" + outFileEnd
 	
