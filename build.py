@@ -71,8 +71,8 @@ def performMinification(command, fileListRaw, ext, indiv=False):
 			file = root + "/" + file
 		
 		if (file):
-			if (ext == "css"):
-				fileList += findCssImports(file)
+			#if (ext == "css"):
+			#	fileList += findCssImports(file)
 		
 			fileList.append(file)
 	
@@ -80,7 +80,15 @@ def performMinification(command, fileListRaw, ext, indiv=False):
 	
 	if (indiv):
 		for file in fileList:
-			args = [command] + [file]
+			args = [command]
+		
+			if (command == 'cleancss'):
+				args.append('-r')
+				localRoot = os.path.dirname(os.path.realpath(file))
+				localRoot = localRoot.replace(root + "", "")
+				args.append(localRoot)
+		
+			args.append(file)
 			print ("args: " + str(args))
 			output += subprocess.check_output(args).decode("utf-8") + "\n"
 	else:
@@ -88,8 +96,8 @@ def performMinification(command, fileListRaw, ext, indiv=False):
 		print ("args: " + str(args))
 		output = subprocess.check_output(args).decode("utf-8")
 
-	if (ext == "css"):
-		output = re.sub("@import[^;]+;", "", output)
+	#if (ext == "css"):
+	#	output = re.sub("@import[^;]+;", "", output)
 
 	outFileEnd = "dist/combined-" + hashlib.sha1(output.encode("utf-8")).hexdigest() + ".min." + ext + ".gz"
 	outFile = root + "/" + outFileEnd
@@ -147,7 +155,7 @@ print(str(scriptFiles))
 print(str(cssFiles))
 
 jsOutFile = performMinification('closure-compiler', scriptFiles, 'js')
-cssOutFile = performMinification('yui-compressor', cssFiles, 'css', True)
+cssOutFile = performMinification('cleancss', cssFiles, 'css')
 
 #jsOutFile = "dist/test.js"
 #cssOutFile = "dist/test.css"
