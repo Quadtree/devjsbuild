@@ -18,33 +18,36 @@ print("tmpPrefix=" + tmpPrefix)
 
 def preprocessTemplates():
 	print("Preprocessing templates")
-	try:
-		newScriptFiles = []
 
-		templateRoot = root + "/templates/"
+	newScriptFiles = []
 
-		for (dirPath, dirNames, fileNames) in os.walk(templateRoot):
-			for fn in fileNames:
-				if (fn.lower().endswith(".html")):
-					htmlFn = (dirPath + fn).replace(root + "/", "")
-					tmpFile = tmpPrefix + hashlib.sha1(htmlFn.encode("utf-8")).hexdigest() + ".html.cache.js"
+	templateRoot = root + "/templates/"
 
-					fi = open(dirPath + fn, "r")
-					fo = open(tmpFile, "w")
+	if (not os.path.isdir(templateRoot)):
+		print ("No template directory found")
+		return
 
-					fo.write('"use strict";\n')
-					fo.write('if (typeof(_preloadedTemplateData) == "undefined") var _preloadedTemplateData = {};\n');
-					fo.write('_preloadedTemplateData["' + htmlFn + '"] = ' + json.dumps(fi.read()) + ';\n')
+	for (dirPath, dirNames, fileNames) in os.walk(templateRoot):
+		for fn in fileNames:
+			if (fn.lower().endswith(".html")):
+				print("Preprocessing " + fn)
 
-					fo.close()
-					fi.close()
+				htmlFn = (dirPath + fn).replace(root + "/", "")
+				tmpFile = tmpPrefix + hashlib.sha1(htmlFn.encode("utf-8")).hexdigest() + ".html.cache.js"
 
-					newScriptFiles.append(tmpFile)
+				fi = open(dirPath + fn, "r")
+				fo = open(tmpFile, "w")
 
-		return newScriptFiles
-	except Exception as err:
-		print("Error preprocessing templates " + str(err))
-		return []
+				fo.write('"use strict";\n')
+				fo.write('if (typeof(_preloadedTemplateData) == "undefined") var _preloadedTemplateData = {};\n');
+				fo.write('_preloadedTemplateData["' + htmlFn + '"] = ' + json.dumps(fi.read()) + ';\n')
+
+				fo.close()
+				fi.close()
+
+				newScriptFiles.append(tmpFile)
+
+	return newScriptFiles
 
 def convertCsvToTmpJs(csvFile):
 	print("Preprocessing CSV")
@@ -261,13 +264,13 @@ class RebuildingHTMLParser(html.parser.HTMLParser):
 			outHtml.write(">")
 
 		if (tag == "head"):
-			outHtml.write('<script src="' + jsOutFile + '" async></script>\n')
-			outHtml.write('<link rel="stylesheet" href="' + cssOutFile + '"/>\n')
+			outHtml.write('<script src="' + jsOutFile + '" async></script>')
+			outHtml.write('<link rel="stylesheet" href="' + cssOutFile + '"/>')
 	def handle_endtag(self, tag):
 		if (tag != "script" and tag != "link" and tag != "br"):
 			outHtml.write("</" + tag + ">")
 	def handle_data(self, data):
-		outHtml.write(data)
+		outHtml.write(data.strip())
 
 parser = RebuildingHTMLParser()
 
