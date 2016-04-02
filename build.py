@@ -11,6 +11,7 @@ import urllib.parse
 import gzip
 import csv
 import json
+import collections
 
 tmpPrefix = "/tmp/devjsbuildpy_" + str(os.getuid()) + "_"
 print("tmpPrefix=" + tmpPrefix)
@@ -63,7 +64,7 @@ def convertCsvToTmpJs(csvFile):
 		if (not columnNames):
 			columnNames = row
 		else:
-			parsedRow = {}
+			parsedRow = collections.OrderedDict()
 
 			for i in range(len(columnNames)):
 				parsedRow[columnNames[i]] = row[i]
@@ -138,6 +139,7 @@ def performMinification(command, fileListRaw, ext, indiv=False):
 			fileList.append(file)
 
 			overallHash.update(hashFile(file).encode("utf-8"))
+			print("Overall hash: " + str(overallHash.hexdigest()))
 
 	output = ""
 
