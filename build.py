@@ -69,7 +69,7 @@ def performMinification(command, fileListRaw, ext, indiv=False):
 	if (indiv):
 		raise Exception("EX")
 	else:
-		if (command != "cleancss"):
+		if ("cleancss" not in command):
 			args = [command] + fileList
 			print ("args: " + str(args))
 			output = subprocess.check_output(args).decode("utf-8")
@@ -135,8 +135,8 @@ f.close()
 print(str(scriptFiles))
 print(str(cssFiles))
 
-jsOutFile = performMinification('closure-compiler', scriptFiles, 'js')
-cssOutFile = performMinification('cleancss', cssFiles, 'css')
+jsOutFile = performMinification('/usr/local/bin/closure-compiler', scriptFiles, 'js')
+cssOutFile = performMinification('/usr/local/bin/cleancss', cssFiles, 'css')
 
 #jsOutFile = "dist/test.js"
 #cssOutFile = "dist/test.css"
