@@ -90,6 +90,14 @@ def preprocessCsv():
 
 	return newScriptFiles
 
+def generateTmpCsvToImpot(importTarget):
+	tmpFile = tmpPrefix + hashlib.sha1(importTarget.encode("utf-8")).hexdigest() + ".css.cache.js"
+	fo = open(tmpFile, "w")
+	fo.write("@import url(" + importTarget + ");\n")
+	fo.close()
+
+	return tmpFile
+
 def hashFile(file):
 	f = open(file, "rb")
 
@@ -131,7 +139,7 @@ def performMinification(command, fileListRaw, ext, indiv=False):
 
 				file = cacheFile
 			else:
-				file = None
+				file = generateTmpCsvToImpot(file)
 		elif (file[0] != "/"):
 			file = root + "/" + file
 
@@ -237,17 +245,7 @@ class RebuildingHTMLParser(html.parser.HTMLParser):
 			return
 
 		if (tag == "link"):
-			isStylesheet = False
-			isExternal = False
-
-			for (k,v) in attrs:
-				if (k == "rel" and v == "stylesheet"):
-					isStylesheet = True
-				if (k == "href" and v[:5] == "https"):
-					isExternal = True
-
-			if (isStylesheet and not isExternal):
-				return
+			return
 
 		outHtml.write("<" + tag)
 
