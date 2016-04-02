@@ -12,6 +12,9 @@ import gzip
 import csv
 import json
 
+tmpPrefix = "/tmp/devjsbuildpy_" + str(os.getuid()) + "_"
+print("tmpPrefix=" + tmpPrefix)
+
 def preprocessTemplates():
 	print("Preprocessing templates")
 	try:
@@ -23,7 +26,7 @@ def preprocessTemplates():
 			for fn in fileNames:
 				if (fn.lower().endswith(".html")):
 					htmlFn = (dirPath + fn).replace(root + "/", "")
-					tmpFile = "/tmp/" + hashlib.sha1((str(os.getuid()) + htmlFn).encode("utf-8")).hexdigest() + ".html.cache.js"
+					tmpFile = tmpPrefix + hashlib.sha1(htmlFn.encode("utf-8")).hexdigest() + ".html.cache.js"
 
 					fi = open(dirPath + fn, "r")
 					fo = open(tmpFile, "w")
@@ -44,7 +47,7 @@ def preprocessTemplates():
 
 def convertCsvToTmpJs(csvFile):
 	print("Preprocessing CSV")
-	tmpFile = "/tmp/" + hashlib.sha1((str(os.getuid()) + csvFile).encode("utf-8")).hexdigest() + ".csv.cache.js"
+	tmpFile = tmpPrefix + hashlib.sha1(csvFile.encode("utf-8")).hexdigest() + ".csv.cache.js"
 
 	m = re.match('.+?/([^/"]+)\.csv', csvFile, re.IGNORECASE)
 	keyName = m.group(1)
@@ -109,7 +112,7 @@ def performMinification(command, fileListRaw, ext, indiv=False):
 			if (ext != "css"):
 				pr = urllib.parse.urlparse(file)
 
-				cacheFile = "/tmp/" + hashlib.sha1(file.encode("utf-8")).hexdigest() + ".cache." + ext
+				cacheFile = tmpPrefix + hashlib.sha1(file.encode("utf-8")).hexdigest() + ".cache." + ext
 
 				if (not os.path.isfile(cacheFile)):
 					print ("Downloading " + file)
