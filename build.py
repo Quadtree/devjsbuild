@@ -12,8 +12,39 @@ import gzip
 import csv
 import json
 
+def preprocessTemplates():
+	print("Preprocessing templates")
+	try:
+		newScriptFiles = []
+
+		templateRoot = root + "/templates/"
+
+		for (dirPath, dirNames, fileNames) in os.walk(templateRoot):
+			for fn in fileNames:
+				if (fn.lower().endswith(".html")):
+					htmlFn = (dirPath + fn).replace(root + "/", "")
+					tmpFile = "/tmp/" + hashlib.sha1((str(os.getuid()) + htmlFn).encode("utf-8")).hexdigest() + ".html.cache.js"
+
+					fi = open(dirPath + fn, "r")
+					fo = open(tmpFile, "w")
+
+					fo.write('"use strict";\n')
+					fo.write('if (typeof(_preloadedTemplateData) == "undefined") var _preloadedTemplateData = {};\n');
+					fo.write('_preloadedTemplateData["' + htmlFn + '"] = ' + json.dumps(fi.read()) + ';\n')
+
+					fo.close()
+					fi.close()
+
+					newScriptFiles.append(tmpFile)
+
+		return newScriptFiles
+	except Exception as err:
+		print("Error preprocessing templates " + str(err))
+		return []
+
 def convertCsvToTmpJs(csvFile):
-	tmpFile = "/tmp/" + hashlib.sha1(csvFile.encode("utf-8")).hexdigest() + ".csv.cache.js"
+	print("Preprocessing CSV")
+	tmpFile = "/tmp/" + hashlib.sha1((str(os.getuid()) + csvFile).encode("utf-8")).hexdigest() + ".csv.cache.js"
 
 	m = re.match('.+?/([^/"]+)\.csv', csvFile, re.IGNORECASE)
 	keyName = m.group(1)
@@ -181,6 +212,7 @@ print(str(scriptFiles))
 print(str(cssFiles))
 
 scriptFiles = preprocessCsv() + scriptFiles
+scriptFiles = preprocessTemplates() + scriptFiles
 
 jsOutFile = performMinification('/usr/local/bin/closure-compiler', scriptFiles, 'js')
 cssOutFile = performMinification('/usr/local/bin/cleancss', cssFiles, 'css')
