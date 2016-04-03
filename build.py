@@ -248,7 +248,14 @@ class RebuildingHTMLParser(html.parser.HTMLParser):
 			return
 
 		if (tag == "link"):
-			return
+			isStylesheet = False
+
+			for (k,v) in attrs:
+				if (k == "rel" and v == "stylesheet"):
+					isStylesheet = True
+
+			if (isStylesheet):
+				return
 
 		outHtml.write("<" + tag)
 
