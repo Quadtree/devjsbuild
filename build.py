@@ -191,14 +191,26 @@ subprocess.call(["rm", "-rf", root + "/dist"])
 subprocess.call(["mkdir", root + "/dist"])
 
 scriptFiles = []
+webWorkerScriptFiles = []
 cssFiles = []
 
 class CustomHTMLParser(html.parser.HTMLParser):
 	def handle_starttag(self, tag, attrs):
 		if (tag == "script"):
+			src = None
+			webWorker = False
+
 			for (k,v) in attrs:
 				if (k == "src"):
-					scriptFiles.append(v)
+					src = v
+				if (k == "data-webworker"):
+					webWorker = True
+
+			if (src):
+				scriptFiles.append(src)
+				if (webWorker):
+					webWorkerScriptFiles.append(src)
+
 		if (tag == "link"):
 			href = ""
 			isStylesheet = False
@@ -230,8 +242,12 @@ print(str(cssFiles))
 scriptFiles = preprocessCsv() + scriptFiles
 scriptFiles = preprocessTemplates() + scriptFiles
 
+webWorkerOutFile = None
+
 jsOutFile = performMinification('/usr/local/bin/closure-compiler', scriptFiles, 'js')
 cssOutFile = performMinification('/usr/local/bin/cleancss', cssFiles, 'css')
+if (len(webWorkerScriptFiles) > 0):
+	webWorkerOutFile = performMinification('/usr/local/bin/closure-compiler', webWorkerScriptFiles, 'js')
 
 #jsOutFile = "dist/test.js"
 #cssOutFile = "dist/test.css"
@@ -271,7 +287,7 @@ class RebuildingHTMLParser(html.parser.HTMLParser):
 			outHtml.write(">")
 
 		if (tag == "head"):
-			outHtml.write('<script src="' + jsOutFile + '" async></script>')
+			outHtml.write('<script src="' + jsOutFile + '" async ' + (('data-webworker-src="' + webWorkerOutFile + '"') if webWorkerOutFile else '') + '></script>')
 			outHtml.write('<link rel="stylesheet" href="' + cssOutFile + '"/>')
 	def handle_endtag(self, tag):
 		if (tag != "script" and tag != "link" and tag != "br"):
