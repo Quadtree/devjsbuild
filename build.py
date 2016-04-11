@@ -287,7 +287,7 @@ class RebuildingHTMLParser(html.parser.HTMLParser):
 			outHtml.write(">")
 
 		if (tag == "head"):
-			outHtml.write('<script src="' + jsOutFile + '" async ' + (('data-webworker-src="' + webWorkerOutFile + '"') if webWorkerOutFile else '') + '></script>')
+			outHtml.write('<script src="' + jsOutFile + '" async' + ((' data-webworker-src="' + webWorkerOutFile + '"') if webWorkerOutFile else '') + '></script>')
 			outHtml.write('<link rel="stylesheet" href="' + cssOutFile + '"/>')
 	def handle_endtag(self, tag):
 		if (tag != "script" and tag != "link" and tag != "br"):
