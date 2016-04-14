@@ -21,7 +21,7 @@ def preprocessTemplates():
 
 	newScriptFiles = []
 
-	templateRoot = root + "/templates/"
+	templateRoot = root + "/templates"
 
 	if (not os.path.isdir(templateRoot)):
 		print ("No template directory found")
@@ -30,12 +30,13 @@ def preprocessTemplates():
 	for (dirPath, dirNames, fileNames) in os.walk(templateRoot):
 		for fn in fileNames:
 			if (fn.lower().endswith(".html")):
-				print("Preprocessing " + fn)
+				fullFilePath = (dirPath + "/" + fn)
+				print("Preprocessing " + fullFilePath)
 
-				htmlFn = (dirPath + fn).replace(root + "/", "")
+				htmlFn = (fullFilePath).replace(root + "/", "")
 				tmpFile = tmpPrefix + hashlib.sha1(htmlFn.encode("utf-8")).hexdigest() + ".html.cache.js"
 
-				fi = open(dirPath + fn, "r")
+				fi = open(fullFilePath, "r")
 				fo = open(tmpFile, "w")
 
 				fo.write('"use strict";\n')
