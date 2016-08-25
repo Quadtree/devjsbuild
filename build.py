@@ -25,7 +25,7 @@ def preprocessTemplates():
 
 	if (not os.path.isdir(templateRoot)):
 		print ("No template directory found")
-		return
+		return []
 
 	for (dirPath, dirNames, fileNames) in os.walk(templateRoot):
 		for fn in fileNames:
@@ -246,15 +246,20 @@ scriptFiles = preprocessTemplates() + scriptFiles
 webWorkerOutFile = None
 
 jsOutFile = performMinification('/usr/local/bin/closure-compiler', scriptFiles, 'js')
-cssOutFile = performMinification('/usr/local/bin/cleancss', cssFiles, 'css')
+cssOutFile = None
+if (cssFiles):
+	cssOutFile = performMinification('/usr/local/bin/cleancss', cssFiles, 'css')
+else:
+	print("No CSS files found, skipping CSS step")
+
 if (len(webWorkerScriptFiles) > 0):
 	webWorkerOutFile = performMinification('/usr/local/bin/closure-compiler', webWorkerScriptFiles, 'js')
 
 #jsOutFile = "dist/test.js"
 #cssOutFile = "dist/test.css"
 
-print(jsOutFile)
-print(cssOutFile)
+print(str(jsOutFile))
+print(str(cssOutFile))
 
 outHtml = open(root + "/index.html", "w")
 outHtml.write("<!DOCTYPE HTML>")
@@ -289,7 +294,8 @@ class RebuildingHTMLParser(html.parser.HTMLParser):
 
 		if (tag == "head"):
 			outHtml.write('<script src="' + jsOutFile + '" async' + ((' data-webworker-src="' + webWorkerOutFile + '"') if webWorkerOutFile else '') + '></script>')
-			outHtml.write('<link rel="stylesheet" href="' + cssOutFile + '"/>')
+			if (cssOutFile):
+				outHtml.write('<link rel="stylesheet" href="' + cssOutFile + '"/>')
 	def handle_endtag(self, tag):
 		if (tag != "script" and tag != "link" and tag != "br"):
 			outHtml.write("</" + tag + ">")
