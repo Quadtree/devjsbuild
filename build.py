@@ -94,7 +94,7 @@ def preprocessCsv():
 
 	return newScriptFiles
 
-def generateTmpCsvToImpot(importTarget):
+def generateTmpCsvToImport(importTarget):
 	tmpFile = tmpPrefix + hashlib.sha1(importTarget.encode("utf-8")).hexdigest() + ".css.cache.js"
 	fo = open(tmpFile, "w")
 	fo.write("@import url(" + importTarget + ");\n")
@@ -102,6 +102,7 @@ def generateTmpCsvToImpot(importTarget):
 
 	return tmpFile
 
+# Determines the SHA-1 digest of the given file. The output is a hex string
 def hashFile(file):
 	f = open(file, "rb")
 
@@ -114,6 +115,11 @@ def hashFile(file):
 
 	return h.hexdigest()
 
+# minifies a set of files using the passed in command, and returns the path to the output file
+# command: The command used for minification
+# fileListRaw: Array containing the files to be minified
+# ext: The extension of the file being created, like "js" or "csv"
+# indiv: Whether the file should be munged or kept individually
 def performMinification(command, fileListRaw, ext, indiv=False):
 
 	fileList = []
@@ -143,7 +149,7 @@ def performMinification(command, fileListRaw, ext, indiv=False):
 
 				file = cacheFile
 			else:
-				file = generateTmpCsvToImpot(file)
+				file = generateTmpCsvToImport(file)
 		elif (file[0] != "/"):
 			file = root + "/" + file
 
