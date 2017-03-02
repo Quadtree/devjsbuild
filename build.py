@@ -168,8 +168,8 @@ def performMinification(command, fileListRaw, ext, indiv=False):
 	if (indiv):
 		raise Exception("EX")
 	else:
-		if ("cleancss" not in command):
-			args = [command] + fileList
+		if ("/usr/local/bin/cleancss" not in command):
+			args = command + fileList
 			print ("args: " + str(args))
 			output = subprocess.check_output(args).decode("utf-8")
 
@@ -177,7 +177,7 @@ def performMinification(command, fileListRaw, ext, indiv=False):
 			f.write(output.encode("utf-8"))
 			f.close()
 		else:
-			args = [command, '-o', root + "/" + outFileStub] + fileList
+			args = command + ['-o', root + "/" + outFileStub] + fileList
 			print ("args: " + str(args))
 			subprocess.check_call(args)
 
@@ -251,15 +251,15 @@ scriptFiles = preprocessTemplates() + scriptFiles
 
 webWorkerOutFile = None
 
-jsOutFile = performMinification('/usr/local/bin/closure-compiler', scriptFiles, 'js')
+jsOutFile = performMinification(["java", "-jar", '/usr/local/bin/closure-compiler'], scriptFiles, 'js')
 cssOutFile = None
 if (cssFiles):
-	cssOutFile = performMinification('/usr/local/bin/cleancss', cssFiles, 'css')
+	cssOutFile = performMinification(['/usr/local/bin/cleancss'], cssFiles, 'css')
 else:
 	print("No CSS files found, skipping CSS step")
 
 if (len(webWorkerScriptFiles) > 0):
-	webWorkerOutFile = performMinification('/usr/local/bin/closure-compiler', webWorkerScriptFiles, 'js')
+	webWorkerOutFile = performMinification(["java", "-jar", '/usr/local/bin/closure-compiler'], webWorkerScriptFiles, 'js')
 
 #jsOutFile = "dist/test.js"
 #cssOutFile = "dist/test.css"
